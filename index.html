@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>D3: A starting point for interactivity</title>
+    <script type="text/javascript" src="js/d3.v3.js"></script>
+    <script type="text/javascript" src="js/underscore.js"></script>
+    <style type="text/css">
+      /* No style rules here yet */   
+    </style>
+  </head>
+  <body>
+    <script type="text/javascript">
+
+      //Width and height
+      var w = 600;
+      var h = 400;
+      
+      //Create SVG element
+      var svg = d3.select("body")
+            .append("svg")
+            .attr("width", w)
+            .attr("height", h);
+
+      var xscale = d3.scale.linear()
+        .domain([0,16])
+        .range([0,100]);
+
+      var blackwhitescale = d3.scale.linear()
+        .domain([-1,1])
+        .range(['black','white']);
+
+      // load the data
+      d3.csv("data/MNIST_training.csv", function(data) {
+        // we don't need all the data
+        // TODO: Randomize?        
+        subset = data.slice(0,3)
+        subset.map(function(d) {
+          _.map(d, function(v, k) { d[k] = +v })
+        })
+
+        // plot each from the subset
+        // for each object, append a group to svg
+        // and then plot each point from the digit
+        // position should be the modulous(index/16), index/16
+        subset.forEach(function(digit, idx) {
+          var digitGroup = svg.append("svg:g")
+            .attr('class', 'digit_group')
+            .attr('id', idx + '_' + digit.label)
+            .attr("transform", function(d) { return "translate(" + 0 + "," + idx*100 + ")"; })
+
+          var ypos = Math.floor(idx/16)
+          var xpos = idx % 16
+
+          digitGroup.selectAll(".pixel")
+              .data(_.values(digit))
+            .enter().append("rect")
+              .attr("class", "pixel")
+              .attr("width", 6.25)
+              .attr("height", 6.25)
+              .attr("x", function(d,i) {
+                //console.log(i)
+                console.log(Math.floor(i/16))
+                return xscale(i%16);
+              })
+              .attr("y", function(d,i) {
+                return xscale(Math.floor(i/16));
+              })
+              .style("fill", function(d) { return blackwhitescale(d) });
+        })
+      });
+      
+    </script>
+  </body>
+</html>
