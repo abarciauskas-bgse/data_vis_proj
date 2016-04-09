@@ -12,7 +12,9 @@
         width: 960px;
         height: 1000px;
         margin: 0px auto;
-        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background-color: '#E1E3D8';
+        color: '#1A1A1A';
+        font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
       }
 
       #container, #container2{
@@ -43,8 +45,7 @@
 
       #graph.graph-scroll-fixed, #graph2.graph-scroll-fixed{
         position: fixed;
-        top: 120px;
-        /*margin-left: 380px;*/
+        top: 160px;
       }
 
       #graph.graph-scroll-below, #graph2.graph-scroll-below {
@@ -72,10 +73,6 @@
         font-size: 1px;
         text-align: right;
       }
-
-      svg {
-        padding-top: 20px;
-      }
     </style>
   </head>
   <body>
@@ -88,6 +85,9 @@
             <p>A large set of examples is often required to train a classifier. These lists and their labels are the <b>training data</b> in classification tasks.</p>
           </div>
           <div class='section'>When a <span style="color: #F12A1B;">new object</span> needs to be classified, classification methods use the training data to determine which class is most likely for the new data. A classic and intuitive classification method is called <b>nearest-neighbors classification</b>. When an unknown image needs to be classified, it is compared to a training set. For each item in the training set, the new image is given a <b>distance score</b>. Those items in the training set which are "closest" to the new image are used to classify the new image.</div>
+
+
+          <div class='section'>Then we can figure out which class it is.</div>
         </div>
 
         <div id='graph'></div>
@@ -117,23 +117,28 @@
         .domain([0,255])
         .range([0,numpixels*pixelsize]);
 
+      var black = '#1A1A1A'
       var blackwhitescale = d3.scale.linear()
         .domain([-1,1])
-        .range(['black','white']);
+        .range([black,'white']);
 
       var red = '#F12A1B'
       var redwhitescale = d3.scale.linear()
         .domain([-1,1])
         .range([red,'white']);
 
+      var blue = '#0AB3A4'
+      var bluewhitescale = d3.scale.linear()
+        .domain([-1,1])
+        .range([blue,'white']);
+
       var deactiveOtherSections = function(activesection) {
-        d3.selectAll('.pixelvalue').transition()
-            .style('fill-opacity',1e-6)
-            .style('font-size', '1px')
+        d3.selectAll("rect").transition();
+        d3.selectAll("text").transition();
       }
 
       var activateSectionOne = function(digits) {
-        //deactiveOtherSections(0)
+        deactiveOtherSections(0)
         var digitgroups = d3.selectAll('.digit_group')
 
         digitgroups[0].forEach(function(group, groupidx) {
@@ -147,6 +152,7 @@
       }
 
       var activateSectionTwo = function() {
+        deactiveOtherSections(1)
         subset = d3.selectAll('.digit_group')
 
         subset.each(function(digit, subset_idx) {
@@ -176,6 +182,7 @@
       }
 
       var activateSectionThree = function() {
+        deactiveOtherSections(2)
         var newdiggroup = d3.selectAll('.newdigitgroup')
         var subset = d3.selectAll('.digit_group')
 
@@ -190,7 +197,6 @@
           texts.each(function(t) {
             d3.select(this).transition()
               .duration(1000)
-              //.attr('y', pixelscale(subset_size)*digit_idx)
               .transition()
                 .delay(1000)
                 .attr('x', 0)
@@ -202,16 +208,46 @@
           })
         })
 
+        d3.selectAll('#distance-header').transition()
+          .delay(3000)
+          .duration(500)
+          .style('fill-opacity', 1)
+
         var texts = d3.selectAll('.distance-text')
 
         texts.transition()
           .delay(3000)
-          .duration(1000)
-          .style('fill-opacity', 1)                    
+          .duration(500)
+          .style('fill-opacity', 1)
+          .transition()
+            .duration(1000)
+            .attr('y', function(d, i) { return subset_size*10 + pixelscale(i*2.25) + 30 })
+            .style('fill-opacity', 1)                    
+      }
+
+      var activateSectionFour = function(subset, subset_nn) {
+        activateSectionOne(subset)
+        var digitgroups = d3.selectAll('.digit_group')
+        digitgroups[0].forEach(function(group, groupidx) {
+          if (groupidx == subset_nn) {
+            d3.selectAll('.group-' + groupidx).transition()
+                .delay(1000)   
+                .duration(1000)
+                .ease('linear')
+                .style('fill-opacity', 1)
+                .attr("x", function(d,i) {return groupidx*imgwidth + pixelscale(i%16);})
+                .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
+                .style('fill', function(d) { return bluewhitescale(d) });
+              };
+          })
       }
 
       // load the data
       d3.csv("data/MNIST_training.csv", function(data) {
+        svg.append('svg:text').text('Training Set')
+          .style('fill',black)
+          .attr('y', '12px')
+
         // we don't need all the data
         // TODO: Randomize?        
         subset = data.slice(0,subset_size)
@@ -227,14 +263,14 @@
         digitGroup = svg.append("svg:g")
           .attr('class', 'newdigitgroup')
           .attr('id', 'newdigit_' + newdigit.label)
-          .attr("transform", function(d) { return "translate(0,-12)"; })
+          .attr("transform", function(d) { return "translate(0," + subset_size*10 + ")"; })
 
         digitGroup.selectAll(".pixelvalue")
             .data(_.values(newdigit))
           .enter().append("text")
             .attr("class", "pixelvalue")
             .attr('x', function(d, point_idx) { return(vectorscale(point_idx)*4)})
-            .attr("y", 0)
+            .attr("y", 12)
             .text(function(d) { return Math.round(d * 10)/10 })
             .style('fill-opacity', 1e-6)
             .style('fill', red)
@@ -250,6 +286,7 @@
           digitGroup = svg.append("svg:g")
             .attr('class', 'digit_group')
             .attr('id', 'digit' + idx + '_' + digit.label)
+            .attr("transform", function(d) { return "translate(0," + 20 + ")"; })
 
           digitGroup.selectAll(".pixel")
               .data(_.values(digit).slice(0,256))
@@ -272,25 +309,37 @@
               .style('fill-opacity', 1e-6);
         });
 
+        svg.append('svg:text')
+          .attr('id','distance-header')
+          .text('Distance from new observation:')
+          .attr('x', 0)
+          .attr('y', subset_size*10 + 20)
+          .style('font-size', '7px')
+          .style('fill', red)
+          .style("fill-opacity", 1e-6);
+
+        var sums = [];
         // take each object and subtract it from the new object
         subset.forEach(function(trainingdigit, digit_idx) {
           var pairs = _.zip(_.values(trainingdigit), _.values(newdigit))
           
           var sum = _.reduce(pairs, function(memo, num){ return memo + Math.pow(num[0] - num[1], 2); }, 0);
+          sums.push(sum)
           // shift the group down and spit out a value
-          var digitGroup = svg.selectAll('#digit' + digit_idx + '_' + trainingdigit.label)
-
+          var digitGroup = svg.selectAll('#digit' + digit_idx + '_' + trainingdigit.label)   
           svg.append("svg:text")
               .attr('class', 'distance-text')
               .attr('id', 'distance-' + digit_idx)
-              .text('Distance: ' + Math.round(sum))
+              .text(Math.round(sum))
               .attr('x', 0)
-              .attr('y', pixelscale(digit_idx*2.25))
+              .attr('y', pixelscale(digit_idx*2.25)+12)
               .style('font-size', '7px')
-              .style('fill', red)
+              .style('fill', black)
               .style("fill-opacity", 1e-6);          
           
         })
+
+        var subset_nn = _.indexOf(sums, _.min(sums))
 
         graphScroll()
             .graph(d3.selectAll('#graph'))
@@ -300,6 +349,7 @@
             if (i == 0) { activateSectionOne(subset) }
             if (i == 1) { activateSectionTwo() }
             if (i == 2) { activateSectionThree(newdigit, subset) }
+            if (i == 3) { activateSectionFour(subset, subset_nn) }
           })
       });
     </script>
