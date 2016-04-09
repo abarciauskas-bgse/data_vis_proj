@@ -10,6 +10,7 @@
     <style type="text/css">
       body{
         width: 960px;
+        height: 1000px;
         margin: 0px auto;
         font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
       }
@@ -68,12 +69,12 @@
       }
 
       text.pixelvalue {
-        font-size: 2px;
+        font-size: 1px;
         text-align: right;
       }
 
-      .hidden {
-        visibility: hidden;
+      svg {
+        padding-top: 20px;
       }
     </style>
   </head>
@@ -82,8 +83,11 @@
     <div id='container'>
         <div id='sections'>
           <div class='section'><b>The image classification challenge:</b> Many machine learning tasks are concerned with classification. A common example is classifying images, whether the images be a photo of a cat or a hand-written digit. Converting hand-writing to computer-readable characters has many useful applications; for example, parsing a doctor's hand-written notes for electronic storage and future analysis.</div>
-          <div class='section'>But computers are simple creatures and it's hard for them to understand an image. Images have to be decomposed into a long list and then transformed into numbers.</div>
-          <div class='section'>A classic and intuitive classification method is called <b>nearest-neighbors classification</b>. When an unknown image needs to be classified, it is compared to a training set. For each item in the training set, the new image is given a <b>distance score</b>. Those items in the training set which are "closest" to the new image are used to classify the new image.</div>
+          <div class='section'>
+            <p>But computers are simple creatures and it's hard for them to understand an image. Images have to be decomposed into lists of numeric values.</p>
+            <p>A large set of examples is often required to train a classifier. These lists and their labels are the <b>training data</b> in classification tasks.</p>
+          </div>
+          <div class='section'>When a <span style="color: #F12A1B;">new object</span> needs to be classified, classification methods use the training data to determine which class is most likely for the new data. A classic and intuitive classification method is called <b>nearest-neighbors classification</b>. When an unknown image needs to be classified, it is compared to a training set. For each item in the training set, the new image is given a <b>distance score</b>. Those items in the training set which are "closest" to the new image are used to classify the new image.</div>
         </div>
 
         <div id='graph'></div>
@@ -100,7 +104,7 @@
       var svg = d3.select("#graph")
             .append("svg").attr({width: w, height: h})
 
-      var pixelsize = 4
+      var pixelsize = 3.85
       var numpixels = 255
       var imgwidth = pixelsize*16
       var subset_size = 8
@@ -117,79 +121,93 @@
         .domain([-1,1])
         .range(['black','white']);
 
+      var red = '#F12A1B'
       var redwhitescale = d3.scale.linear()
         .domain([-1,1])
-        .range(['#F12A1B','white']);
+        .range([red,'white']);
 
       var deactiveOtherSections = function(activesection) {
-        if (!(activesection == 2)) {
-          d3.selectAll('.newdigitgroup')
-            .attr('class', 'hidden')
-        }
+        d3.selectAll('.pixelvalue').transition()
+            .style('fill-opacity',1e-6)
+            .style('font-size', '1px')
       }
 
       var activateSectionOne = function(digits) {
-        deactiveOtherSections(0)
-        var digitgroups = d3.selectAll('.digit_group').attr("transform", function(d, idx) { return "translate(" + idx*imgwidth + ",0)"; })
+        //deactiveOtherSections(0)
+        var digitgroups = d3.selectAll('.digit_group')
 
         digitgroups[0].forEach(function(group, groupidx) {
           d3.selectAll('.group-' + groupidx).transition()     
               .duration(1000)
               .ease('linear')
-              .attr("x", function(d,i) {return pixelscale(i%16);})
+              .attr("x", function(d,i) {return groupidx*imgwidth + pixelscale(i%16);})
               .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
               .style('fill-opacity', 1);
             });
       }
 
-      var activateSectionTwo = function(subset) {
-        deactiveOtherSections(1)
-        // when we scroll, translate the points
-        // for each digit, translate it's position into a row
-        subset.forEach(function(digit, subset_idx) {
-          digitGroup = svg.selectAll('#digit' + subset_idx + '_' + digit.label)
-            .attr("transform", function(d) { return "translate(" + 0 + "," + pixelscale(subset_idx) + ")"; })
+      var activateSectionTwo = function() {
+        subset = d3.selectAll('.digit_group')
 
-          digitGroup.selectAll('.pixel').transition()
-            .delay(function(d,pix) {return 10*(pix+1)})
-            .duration(10)
-            .ease('linear')
-            .attr('x', function(d,i) { return(vectorscale(i))})
-            .attr('y', function(d,i) {})
+        subset.each(function(digit, subset_idx) {
+          pixels = d3.select(this).selectAll('.pixel')
 
-          digitGroup.selectAll('.pixel').transition()
+          d3.select(this).selectAll('.pixel').transition()
+              .delay(function(d,pix) {return 10*(pix+1)})
+              .duration(10)
+              .ease('linear')
+              .attr('x', function(d,i) { return(vectorscale(i)) })
+              .attr('y', function(d,i) { return(pixelscale(subset_idx)) })
+
+          d3.select(this).selectAll('.pixel').transition()
             .delay(10*256)
             .duration(1000)
             .ease('linear')
             .style('fill-opacity',1e-6)
 
-          digitGroup.selectAll('.pixelvalue').transition()
-            .delay(10*256)
-            .duration(1000)
-            .ease('linear')
-            .style('fill-opacity',1)
-            .style('font-size', '7px')                
-        })        
+            d3.select(this).selectAll('.pixelvalue').transition()
+              .delay(10*256)
+              .duration(1000)
+              .ease('linear')
+              .style('fill-opacity',1)
+              .style('font-size', '7px')
+
+        });        
       }
 
-      var activateSectionThree = function(newdigit, subset) {
-        subsetSize = subset.length
+      var activateSectionThree = function() {
+        var newdiggroup = d3.selectAll('.newdigitgroup')
+        var subset = d3.selectAll('.digit_group')
 
-        digitGroup = svg.append("svg:g")
-          .attr('class', 'newdigitgroup')
-          .attr('id', 'newdigit_' + newdigit.label)
-          .attr("transform", function(d) { return "translate(0," + imgwidth + ")"; })
+        newdiggroup.selectAll(".pixelvalue")
+            .transition()
+            .duration(1000)
+            .style('fill-opacity',1)
+            .style('font-size', '7px')
 
-        digitGroup.selectAll(".pixel")
-            .data(_.values(newdigit))
-          .enter().append("rect")
-            .attr("class", "pixel")
-            .attr("width", pixelsize)
-            .attr("height", pixelsize)
-            .attr("x", function(d,i) {return pixelscale(i%16);})
-            .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
-            .style("fill", function(d) { return redwhitescale(d) })
-            .style('fill-opacity', 1);
+        subset.each(function(trainingdigit, digit_idx) {
+          texts = d3.select(this).selectAll('text')
+          texts.each(function(t) {
+            d3.select(this).transition()
+              .duration(1000)
+              //.attr('y', pixelscale(subset_size)*digit_idx)
+              .transition()
+                .delay(1000)
+                .attr('x', 0)
+              .transition()
+                .delay(2000)
+                .duration(1000)
+                .style('fill-opacity', 1e-6)
+
+          })
+        })
+
+        var texts = d3.selectAll('.distance-text')
+
+        texts.transition()
+          .delay(3000)
+          .duration(1000)
+          .style('fill-opacity', 1)                    
       }
 
       // load the data
@@ -202,6 +220,26 @@
           _.map(d, function(v, k) { d[k] = +v })
         })
 
+        _.map(newdigit, function(v,k) {
+          newdigit[k] = +v
+        })
+
+        digitGroup = svg.append("svg:g")
+          .attr('class', 'newdigitgroup')
+          .attr('id', 'newdigit_' + newdigit.label)
+          .attr("transform", function(d) { return "translate(0,-12)"; })
+
+        digitGroup.selectAll(".pixelvalue")
+            .data(_.values(newdigit))
+          .enter().append("text")
+            .attr("class", "pixelvalue")
+            .attr('x', function(d, point_idx) { return(vectorscale(point_idx)*4)})
+            .attr("y", 0)
+            .text(function(d) { return Math.round(d * 10)/10 })
+            .style('fill-opacity', 1e-6)
+            .style('fill', red)
+            .style('font-size', '7px')
+
         // Put digits, numeric values and new digit on the page
         // when certain sections are active animate in and out of view
         //
@@ -212,29 +250,47 @@
           digitGroup = svg.append("svg:g")
             .attr('class', 'digit_group')
             .attr('id', 'digit' + idx + '_' + digit.label)
-            .attr("transform", function(d) { return "translate(" + idx*imgwidth + ",0)"; })
 
           digitGroup.selectAll(".pixel")
-              .data(_.values(digit))
+              .data(_.values(digit).slice(0,256))
             .enter().append("rect")
               .attr("class", "pixel group-" + idx)
               .attr("width", pixelsize)
               .attr("height", pixelsize)
-              .attr("x", function(d,i) {return pixelscale(i%16);})
+              .attr("x", function(d,i) {return idx*imgwidth  + pixelscale(i%16);})
               .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
               .style("fill", function(d) { return blackwhitescale(d) })
               .style('fill-opacity', 1e-6);
 
           digitGroup.selectAll(".pixelvalue")
-              .data(_.values(digit))
+              .data(_.values(digit).slice(0,256))
             .enter().append("text")
               .attr("class", "pixelvalue")
               .attr('x', function(d, point_idx) { return(vectorscale(point_idx)*4)})
-              .attr("y", function(d,i) { return pixelscale(idx+1)+2; })
+              .attr("y", function(d,i) { return pixelscale(idx*2.25); })
               .text(function(d) { return Math.round(d * 10)/10 })
               .style('fill-opacity', 1e-6);
         });
 
+        // take each object and subtract it from the new object
+        subset.forEach(function(trainingdigit, digit_idx) {
+          var pairs = _.zip(_.values(trainingdigit), _.values(newdigit))
+          
+          var sum = _.reduce(pairs, function(memo, num){ return memo + Math.pow(num[0] - num[1], 2); }, 0);
+          // shift the group down and spit out a value
+          var digitGroup = svg.selectAll('#digit' + digit_idx + '_' + trainingdigit.label)
+
+          svg.append("svg:text")
+              .attr('class', 'distance-text')
+              .attr('id', 'distance-' + digit_idx)
+              .text('Distance: ' + Math.round(sum))
+              .attr('x', 0)
+              .attr('y', pixelscale(digit_idx*2.25))
+              .style('font-size', '7px')
+              .style('fill', red)
+              .style("fill-opacity", 1e-6);          
+          
+        })
 
         graphScroll()
             .graph(d3.selectAll('#graph'))
@@ -242,7 +298,7 @@
           .sections(d3.selectAll('#sections > div'))
           .on('active', function(i){
             if (i == 0) { activateSectionOne(subset) }
-            if (i == 1) { activateSectionTwo(subset) }
+            if (i == 1) { activateSectionTwo() }
             if (i == 2) { activateSectionThree(newdigit, subset) }
           })
       });
