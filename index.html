@@ -78,6 +78,9 @@
         color: #0AB3A4;
         cursor: pointer;
       }
+      .red {
+        color: #F12A1B;
+      }
     </style>
   </head>
   <body>
@@ -96,13 +99,13 @@
           </div>
 
           <div class='section' id='section-3'>
-            <p>When a <span style="color: #F12A1B;">new object</span> needs to be classified, classification methods use the training data to determine which class is most likely for the new data. A classic and intuitive classification method is called <b>nearest-neighbors classification</b>. When an unknown image needs to be classified, it is compared to a training set. For each item in the training set, the new image is given a <b>distance score</b>. Those items in the training set which are "closest" to the new image are used to classify the new image.</p>
+            <p>When a <span style="class: 'red';">new object</span> needs to be classified, classification methods use the training data to determine which class is most likely for the new data. A classic and intuitive classification method is called <b>nearest-neighbors classification</b>. When an unknown image needs to be classified, it is compared to a training set. For each item in the training set, the new image is given a <b>distance score</b>. Those items in the training set which are "closest" to the new image are used to classify the new image.</p>
             <div class='button'>Continue</div>
           </div>
 
 
           <div class='section' id='section-4'>
-            <p>Then we can figure out which class it is.</p>
+            <p>Predictions for the class of the new observation are made on the basis of the distance from objects in the training set.</p>
             <div class='button'>Back to top</div>
           </div>
         </div>
@@ -175,83 +178,162 @@
         digitgroups.transition()
 
         digitgroups.each(function(group, groupidx) {
-          d3.selectAll('.group-' + groupidx).transition()     
-              .delay(delay)
-              .duration(1000)
-              .ease('linear')
-              .attr("x", function(d,i) {return groupidx*imgwidth + pixelscale(i%16);})
-              .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
-              .style('fill', function(d) { return blackwhitescale(d)})
-              .style('fill-opacity', 1);
-            });
+          if (delay > 0) {
+            d3.selectAll('.group-' + groupidx).transition()     
+                .delay(delay)
+                .duration(1000)
+                .ease('linear')
+                .attr("x", function(d,i) {return groupidx*imgwidth + pixelscale(i%16);})
+                .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
+                .style('fill', function(d) { return blackwhitescale(d)})
+                .style('fill-opacity', 1);
+          } else {
+            d3.selectAll('.group-' + groupidx).transition()
+                .attr("x", function(d,i) {return groupidx*imgwidth + pixelscale(i%16);})
+                .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
+                .style('fill', function(d) { return blackwhitescale(d)})
+                .style('fill-opacity', 1);            
+          }
+        });
       }
 
       var dur = 10
-      var drawPixelValueVectors = function() {
+      var drawPixelValueVectors = function(delay) {
         subset = d3.selectAll('.digit_group')
         subset.each(function(digit, subset_idx) {
           d3.select(this).selectAll('.pixel').transition()
-              .delay(function(d,pix) {return dur*(pix+1)})
-              .duration(dur)
+              .delay(function(d,pix) {
+                if (delay) {return dur*(pix+1)}
+              })
+              .duration(function() {
+                if (delay) {return dur}
+              })
               .ease('linear')
               .style('fill', function(d) {return blackwhitescale(d)})
               .attr('x', function(d,i) { return(vectorscale(i)) })
               .attr('y', function(d,i) { return(pixelscale(subset_idx)) })
 
           d3.select(this).selectAll('.pixel').transition()
-            .delay(dur*256+100)
-            .duration(1000)
+            .delay(function() { if (delay) { return dur*256+100 } })
+            .duration(function() { if (delay) { return 1000 } })
             .ease('linear')
             .style('fill-opacity',1e-6)
 
-            d3.select(this).selectAll('.pixelvalue').transition()
-              .delay(dur*256+100)
-              .duration(1000)
-              .ease('linear')
-              .style('fill-opacity',1)
-              .style('font-size', '7px')
+            if (delay) {
+              d3.select(this).selectAll('.pixelvalue').transition()
+                .delay(function() { if (delay) { return dur*256+100 } })
+                .duration(function() { if (delay) { return 1000 } })
+                .ease('linear')
+                .style('fill-opacity',1)
+                .style('font-size', '7px')
+            } else {
+              d3.select(this).selectAll('.pixelvalue')
+                .style('fill-opacity',1)
+                .style('font-size', '7px')
+            }
 
         }); 
+      }
+
+      var writeDistances = function(delay) {
+        if (delay) {
+          d3.selectAll('#distance-header').transition()
+            .delay(3000)
+            .duration(1000)
+            .style('fill-opacity', 1)
+
+          var texts = d3.selectAll('.distance-text')
+
+          texts.transition()
+            .duration(1000)
+            .delay(3000)
+            .style('fill-opacity', 1)
+            .transition()
+              .delay(4100)
+              .attr('y', 20)
+            .transition()
+              .delay(5200)
+              .attr('x', function(d,i) { return i*imgwidth+13 })
+            .transition()
+              .delay(6300)
+              .style('font-size', '12px')
+
+          d3.selectAll('#section-3 div.button').transition()
+            .delay(7400)
+            .duration(100)
+            .attr('class','button button-active')
+        } else {
+          d3.selectAll('#distance-header').transition()
+            .style('fill-opacity', 1)
+
+          var texts = d3.selectAll('.distance-text')
+
+          texts.style('fill-opacity', 1).transition()
+              .attr('y', 20)
+              .attr('x', function(d,i) { return i*imgwidth+13 })
+              .style('font-size', '12px')
+
+          d3.selectAll('#section-3 div.button').transition()
+            .attr('class','button button-active')          
+        }
       }
 
       var activateSectionOne = function(digits) {
         deactiveOtherSections();
         trainingGroupDefaults();
         newDigitDefaults();
+        distancesGroupDefaults();
         pixelvalueDefaults();
-        drawTraining(0);
+        drawTraining(100);
         d3.selectAll('#section-1 div.button').attr('class','button button-active')
       }
 
       var activateSectionTwo = function() {
-        deactiveOtherSections()
+        deactiveOtherSections();
         newDigitDefaults();
         pixelvalueDefaults();
         distancesGroupDefaults();
-        drawPixelValueVectors();
+        drawTraining(0);
+        drawPixelValueVectors(true);
+
         d3.selectAll('#section-2 div.button').transition()
           .delay(dur*256+1100)
           .attr('class','button button-active')       
       }
 
-      var activateSectionThree = function() {
-        deactiveOtherSections();
-        newDigitDefaults();
-        distancesGroupDefaults();
-
+      var drawNewDigitValues = function(delay) {
         var newdiggroup = d3.selectAll('.newdigitgroup')
         var subset = d3.selectAll('.digit_group')
 
-        newdiggroup.selectAll(".pixelvalue")
-            .transition()
-            .duration(1000)
-            .style('fill-opacity',1)
-            .style('font-size', '7px')
+        if (delay) {
+          newdiggroup.selectAll(".pixelvalue")
+              .transition()
+              .duration(1000)
+              .style('fill-opacity',1)
+              .style('font-size', '7px')
+         
+          d3.selectAll("#newdigitvalues_header")
+              .transition()
+              .duration(1000)
+              .style('fill-opacity',1) 
+        } else {
+          newdiggroup.selectAll(".pixelvalue").transition()
+              .style('fill-opacity',1)
+              .style('font-size', '7px')
+         
+          d3.selectAll("#newdigitvalues_header").transition()
+              .style('fill-opacity',1)           
+        }
+      }
 
-        d3.selectAll("#newdigitvalues_header")
-            .transition()
-            .duration(1000)
-            .style('fill-opacity',1)            
+      var activateSectionThree = function() {
+        deactiveOtherSections();
+        newDigitDefaults();
+        trainingGroupDefaults();
+        distancesGroupDefaults();
+        drawPixelValueVectors(false);
+
+        drawNewDigitValues(true);           
 
         d3.selectAll('#trainingSetGroup')
           .transition()
@@ -275,36 +357,20 @@
         })
       
         drawTraining(4000)
-
-        d3.selectAll('#distance-header').transition()
-          .delay(3000)
-          .duration(1000)
-          .style('fill-opacity', 1)
-
-        var texts = d3.selectAll('.distance-text')
-
-        texts.transition()
-          .duration(1000)
-          .delay(3000)
-          .style('fill-opacity', 1)
-          .transition()
-            .delay(4100)
-            .attr('y', 20)
-          .transition()
-            .delay(5200)
-            .attr('x', function(d,i) { return i*imgwidth+13 })
-          .transition()
-            .delay(6300)
-            .style('font-size', '12px')
-
-        d3.selectAll('#section-3 div.button').transition()
-          .delay(7400)
-          .duration(100)
-          .attr('class','button button-active')                  
+        writeDistances(true);                  
       }
 
       var activateSectionFour = function(subset, subset_nn) {
-        deactiveOtherSections()
+        deactiveOtherSections();
+        newDigitDefaults();
+        trainingGroupDefaults();
+        distancesGroupDefaults();
+        drawTraining(0);
+        writeDistances(false);
+        drawNewDigitValues(false);
+
+        d3.selectAll('#trainingSetGroup')
+          .attr("transform", function(d) { return "translate(0," + 70 + ")"; })
 
         d3.selectAll('.group-' + subset_nn).transition()
             .delay(100)   
@@ -391,7 +457,10 @@
             .style('fill', red)
             .style('font-weight', 900)
             .style('font-size', '7px')
+
+        //console.log('here')
         newDigitGroup.selectAll('.pixel')
+          .transition()
           .style('fill-opacity', 1e-6)
       }
 
