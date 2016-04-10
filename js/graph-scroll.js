@@ -30,12 +30,6 @@ function graphScroll() {
       i = i1
     }
 
-    var isBelow1 = pageYOffset > belowStart - 120
-    if (isBelow != isBelow1){
-      isBelow = isBelow1
-      graph.classed('graph-scroll-below', isBelow)
-    }
-
     var isFixed1 = !isBelow && pageYOffset > containerStart - 120
     if (isFixed != isFixed1){
       isFixed = isFixed1

@@ -6,11 +6,12 @@
     <script type="text/javascript" src="js/d3.v3.js"></script>
     <script type="text/javascript" src="js/underscore.js"></script>
     <script type="text/javascript" src="js/graph-scroll.js"></script>
+    <script type="text/javascript" src="js/jquery-1.12.3.min.js"></script>
     <!-- https://1wheel.github.io/graph-scroll/ -->
     <style type="text/css">
       body{
         width: 960px;
-        height: 2000px;
+        height: 3000px;
         margin: 0px auto;
         background-color: '#E1E3D8';
         color: '#1A1A1A';
@@ -40,17 +41,12 @@
 
       #graph, #graph2{
         position: fixed;
-        top: 220px;
+        top: 250px;
       }
 
       #graph.graph-scroll-fixed, #graph2.graph-scroll-fixed{
         position: fixed;
-        top: 160px;
-      }
-
-      #graph.graph-scroll-below, #graph2.graph-scroll-below {
-        position: absolute;
-        bottom: 0px;
+        top: 100px;
       }
 
       h1 {
@@ -73,21 +69,38 @@
         font-size: 1px;
         text-align: right;
       }
+      .button {
+        opacity: 0.1;
+        float: right;
+      }
+      .button-active {
+        opacity: 1;
+        color: #0AB3A4;
+      }
     </style>
   </head>
   <body>
     <h1>Classification of MNIST Hand-Drawn Digits</h1>
     <div id='container'>
         <div id='sections'>
-          <div class='section'><b>The image classification challenge:</b> Many machine learning tasks are concerned with classification. A common example is classifying images, whether the images be a photo of a cat or a hand-written digit. Converting hand-writing to computer-readable characters has many useful applications; for example, parsing a doctor's hand-written notes for electronic storage and future analysis.</div>
-          <div class='section'>
+          <div class='section' id='section-1'>
+            <p><b>The image classification challenge:</b> Many machine learning tasks are concerned with classification. A common example is classifying images, whether the images be a photo of a cat or a hand-written digit. Converting hand-writing to computer-readable characters has many useful applications; for example, parsing a doctor's hand-written notes for electronic storage and future analysis.</p>
+            <div class='button'>Continue</div>
+          </div>
+
+          <div class='section' id='section-2'>
             <p>But computers are simple creatures and it's hard for them to understand an image. Images have to be decomposed into lists of numeric values.</p>
             <p>A large set of examples is often required to train a classifier. These lists and their labels are the <b>training data</b> in classification tasks.</p>
+            <div class='button'>Continue</div>
           </div>
-          <div class='section'>When a <span style="color: #F12A1B;">new object</span> needs to be classified, classification methods use the training data to determine which class is most likely for the new data. A classic and intuitive classification method is called <b>nearest-neighbors classification</b>. When an unknown image needs to be classified, it is compared to a training set. For each item in the training set, the new image is given a <b>distance score</b>. Those items in the training set which are "closest" to the new image are used to classify the new image.</div>
+
+          <div class='section' id='section-3'>
+            <p>When a <span style="color: #F12A1B;">new object</span> needs to be classified, classification methods use the training data to determine which class is most likely for the new data. A classic and intuitive classification method is called <b>nearest-neighbors classification</b>. When an unknown image needs to be classified, it is compared to a training set. For each item in the training set, the new image is given a <b>distance score</b>. Those items in the training set which are "closest" to the new image are used to classify the new image.</p>
+            <div class='button'>Continue</div>
+          </div>
 
 
-          <div class='section'>Then we can figure out which class it is.</div>
+          <div class='section' id='section-4'>Then we can figure out which class it is.</div>
         </div>
 
         <div id='graph'></div>
@@ -96,6 +109,14 @@
 
   <footer>
     <script type="text/javascript">
+
+      d3.selectAll('.button').on('click', function(button) {
+        var current = parseInt(d3.select(this.parentNode).attr('id').split('-')[1])
+        console.log(current)
+        $('html, body').animate({
+                scrollTop: $("#section-" + (current + 1)).offset().top
+            }, 2000);        
+      })
       //Width and height
       var w = 960;
       var h = 400;
@@ -140,6 +161,8 @@
 
       var drawTraining = function(delay) {
         var digitgroups = d3.selectAll('.digit_group')
+        digitgroups.transition()
+
         digitgroups.each(function(group, groupidx) {
           d3.selectAll('.group-' + groupidx).transition()     
               .delay(delay)
@@ -147,14 +170,14 @@
               .ease('linear')
               .attr("x", function(d,i) {return groupidx*imgwidth + pixelscale(i%16);})
               .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
+              .style('fill', function(d) { return blackwhitescale(d)})
               .style('fill-opacity', 1);
             });
       }
 
+      var dur = 10
       var drawPixelValueVectors = function() {
         subset = d3.selectAll('.digit_group')
-
-        dur = 10
         subset.each(function(digit, subset_idx) {
           d3.select(this).selectAll('.pixel').transition()
               .delay(function(d,pix) {return dur*(pix+1)})
@@ -181,22 +204,30 @@
       }
 
       var activateSectionOne = function(digits) {
-        deactiveOtherSections()
+        deactiveOtherSections();
+        trainingGroupDefaults();
+        newDigitDefaults();
         pixelvalueDefaults();
         drawTraining(0);
+        d3.selectAll('#section-1 div.button').attr('class','button button-active')
       }
 
       var activateSectionTwo = function() {
         deactiveOtherSections()
         newDigitDefaults();
         pixelvalueDefaults();
-        drawTraining();
         distancesGroupDefaults();
-        drawPixelValueVectors();       
+        drawPixelValueVectors();
+        d3.selectAll('#section-2 div.button').transition()
+          .delay(dur*256+1100)
+          .attr('class','button button-active')       
       }
 
       var activateSectionThree = function() {
-        deactiveOtherSections();
+        //deactiveOtherSections();
+        newDigitDefaults();
+        distancesGroupDefaults();
+
         var newdiggroup = d3.selectAll('.newdigitgroup')
         var subset = d3.selectAll('.digit_group')
 
@@ -231,19 +262,19 @@
 
           })
         })
-
+      
         drawTraining(4000)
 
         d3.selectAll('#distance-header').transition()
           .delay(3000)
-          .duration(500)
+          .duration(1000)
           .style('fill-opacity', 1)
 
         var texts = d3.selectAll('.distance-text')
 
         texts.transition()
           .delay(3000)
-          .duration(500)
+          .duration(1000)
           .style('fill-opacity', 1)
           .transition()
             .duration(1000)
@@ -253,7 +284,11 @@
             .attr('x', function(d,i) { return i*imgwidth+13 })
           .transition()
             .duration(1000)
-            .style('font-size', '12px')                  
+            .style('font-size', '12px')
+
+        d3.selectAll('#section-3 div.button').transition()
+          .delay(4000)
+          .attr('class','button button-active')                  
       }
 
       var activateSectionFour = function(subset, subset_nn) {
@@ -273,8 +308,25 @@
           .style('font-weight', 900)
 
         // shift down the training set and plot the new digit
+        d3.selectAll('#trainingSetGroup').transition()
+          .delay(1100)
+          .ease('linear')
+          .duration(1000)
+          .attr("transform", function(d) { return "translate(0," + 150 + ")"; })
+
+        d3.selectAll('#distances_group').transition()
+          .delay(1100)
+          .ease('linear')
+          .duration(1000)
+          .attr("transform", function(d) { return "translate(0," + (150+70+15) + ")"; })
+
 
         // plot the new digit
+        d3.selectAll('.newdigitgroup').selectAll('.pixel').transition()
+          .delay(2100)
+          .ease('linear')
+          .duration(1000)
+          .style('fill-opacity',1)
       }
 
       var pixelvalueDefaults = function() {
@@ -290,6 +342,9 @@
          }) 
       }
       var trainingGroupDefaults = function() {
+          d3.select('#trainingSetGroup')
+            .attr("transform", function(d) { return "translate(0," + 30 + ")"; })
+
           var digitGroups = d3.selectAll('.digit_group')
           digitGroups.each(function(group, idx) {
             d3.select(this).selectAll(".pixel")
@@ -298,7 +353,6 @@
               .attr("height", pixelsize)
               .attr("x", function(d,i) { return idx*imgwidth  + pixelscale(i%16);})
               .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
-              .style("fill", function(d) { return blackwhitescale(d) })
               .style('fill-opacity', 1e-6);
          })
          pixelvalueDefaults();
@@ -320,16 +374,22 @@
             .style('fill-opacity', 1e-6)
             .style('fill', red)
             .style('font-weight', 900)
-            .style('font-size', '7px')   
+            .style('font-size', '7px')
+        newDigitGroup.selectAll('.pixel')
+          .style('fill-opacity', 1e-6)
       }
 
+      var distancesGroupOffset = imgwidth+70+15
       var distancesGroupDefaults = function() {
+        d3.selectAll('#distances_group')
+          .attr("transform", function(d) { return "translate(0," + distancesGroupOffset + ")"; })
+
         d3.selectAll('#distance-header')
           .text('Distance from new observation:')
           .attr('x', 0)
           .attr('y', 0)
           .style('font-size', '12px')
-          .style('fill', red)
+          .style('fill', blue)
           .style('font-weight', 9000)
           .style("fill-opacity", 1e-6);
 
@@ -368,6 +428,17 @@
           .enter().append("text")
             .attr("class", "pixelvalue")
 
+        newDigitGroup.selectAll(".pixel")
+            .data(_.values(newdigit))
+          .enter().append("rect")
+              .attr('class', 'pixel')
+              .attr("width", pixelsize)
+              .attr("height", pixelsize)
+              .attr("x", function(d,i) {return pixelscale(i%16);})
+              .attr("y", function(d,i) {return pixelscale(Math.floor(i/16)) + 20;})
+              .style("fill", function(d) {return redwhitescale(d)})
+              .style('fill-opacity', 1e-6);
+
         newDigitDefaults();
 
         var trainingGroup = svg.append('svg:g')
@@ -375,7 +446,8 @@
           .attr("transform", function(d) { return "translate(0," + 30 + ")"; })
 
         trainingGroup.append('svg:text').text('Training Set')
-           .style('fill',black)
+           .style('fill',blue)
+           .style('font-weight', 900)
            .attr('y', -12)
 
         // Put digits, numeric values and new digit on the page
@@ -401,7 +473,6 @@
         });
         trainingGroupDefaults();
 
-        distancesGroupOffset = imgwidth+70+15
         distancesGroup = svg.append("svg:g")
           .attr('id', 'distances_group')
           .attr("transform", function(d) { return "translate(0," + distancesGroupOffset + ")"; })
@@ -409,6 +480,7 @@
         distancesGroup.append('svg:text')
           .attr('id','distance-header')
           .text('Distance from new observation:')
+          .style('font-weight', 900)
 
         var sums = [];
         // take each object and subtract it from the new object
