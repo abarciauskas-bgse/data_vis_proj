@@ -10,7 +10,7 @@
     <style type="text/css">
       body{
         width: 960px;
-        height: 1000px;
+        height: 2000px;
         margin: 0px auto;
         background-color: '#E1E3D8';
         color: '#1A1A1A';
@@ -66,7 +66,7 @@
       }
 
       div.section {
-        height: 200px;
+        height: 400px;
       }
 
       text.pixelvalue {
@@ -98,7 +98,7 @@
     <script type="text/javascript">
       //Width and height
       var w = 960;
-      var h = 200;
+      var h = 400;
       
       //Create SVG element
       var svg = d3.select("#graph")
@@ -134,15 +134,15 @@
 
       var deactiveOtherSections = function(activesection) {
         d3.selectAll("rect").transition();
+        d3.selectAll("g").transition();
         d3.selectAll("text").transition();
       }
 
-      var activateSectionOne = function(digits) {
-        deactiveOtherSections(0)
+      var drawTraining = function(delay) {
         var digitgroups = d3.selectAll('.digit_group')
-
-        digitgroups[0].forEach(function(group, groupidx) {
+        digitgroups.each(function(group, groupidx) {
           d3.selectAll('.group-' + groupidx).transition()     
+              .delay(delay)
               .duration(1000)
               .ease('linear')
               .attr("x", function(d,i) {return groupidx*imgwidth + pixelscale(i%16);})
@@ -151,38 +151,52 @@
             });
       }
 
-      var activateSectionTwo = function() {
-        deactiveOtherSections(1)
+      var drawPixelValueVectors = function() {
         subset = d3.selectAll('.digit_group')
 
+        dur = 10
         subset.each(function(digit, subset_idx) {
-          pixels = d3.select(this).selectAll('.pixel')
-
           d3.select(this).selectAll('.pixel').transition()
-              .delay(function(d,pix) {return 10*(pix+1)})
-              .duration(10)
+              .delay(function(d,pix) {return dur*(pix+1)})
+              .duration(dur)
               .ease('linear')
+              .style('fill', function(d) {return blackwhitescale(d)})
               .attr('x', function(d,i) { return(vectorscale(i)) })
               .attr('y', function(d,i) { return(pixelscale(subset_idx)) })
 
           d3.select(this).selectAll('.pixel').transition()
-            .delay(10*256)
+            .delay(dur*256+100)
             .duration(1000)
             .ease('linear')
             .style('fill-opacity',1e-6)
 
             d3.select(this).selectAll('.pixelvalue').transition()
-              .delay(10*256)
+              .delay(dur*256+100)
               .duration(1000)
               .ease('linear')
               .style('fill-opacity',1)
               .style('font-size', '7px')
 
-        });        
+        }); 
+      }
+
+      var activateSectionOne = function(digits) {
+        deactiveOtherSections()
+        pixelvalueDefaults();
+        drawTraining(0);
+      }
+
+      var activateSectionTwo = function() {
+        deactiveOtherSections()
+        newDigitDefaults();
+        pixelvalueDefaults();
+        drawTraining();
+        distancesGroupDefaults();
+        drawPixelValueVectors();       
       }
 
       var activateSectionThree = function() {
-        deactiveOtherSections(2)
+        deactiveOtherSections();
         var newdiggroup = d3.selectAll('.newdigitgroup')
         var subset = d3.selectAll('.digit_group')
 
@@ -192,21 +206,33 @@
             .style('fill-opacity',1)
             .style('font-size', '7px')
 
+        d3.selectAll("#newdigitvalues_header")
+            .transition()
+            .duration(1000)
+            .style('fill-opacity',1)            
+
+        d3.selectAll('#trainingSetGroup')
+          .transition()
+          .duration(1000)
+          .attr("transform", function(d) { return "translate(0," + 70 + ")"; })
+
         subset.each(function(trainingdigit, digit_idx) {
           texts = d3.select(this).selectAll('text')
           texts.each(function(t) {
             d3.select(this).transition()
               .duration(1000)
               .transition()
-                .delay(1000)
+                .delay(1100)
                 .attr('x', 0)
               .transition()
-                .delay(2000)
+                .delay(2200)
                 .duration(1000)
                 .style('fill-opacity', 1e-6)
 
           })
         })
+
+        drawTraining(4000)
 
         d3.selectAll('#distance-header').transition()
           .delay(3000)
@@ -221,33 +247,102 @@
           .style('fill-opacity', 1)
           .transition()
             .duration(1000)
-            .attr('y', function(d, i) { return subset_size*10 + pixelscale(i*2.25) + 30 })
-            .style('fill-opacity', 1)                    
+            .attr('y', 20)
+          .transition()
+            .duration(1000)
+            .attr('x', function(d,i) { return i*imgwidth+13 })
+          .transition()
+            .duration(1000)
+            .style('font-size', '12px')                  
       }
 
       var activateSectionFour = function(subset, subset_nn) {
-        activateSectionOne(subset)
-        var digitgroups = d3.selectAll('.digit_group')
-        digitgroups[0].forEach(function(group, groupidx) {
-          if (groupidx == subset_nn) {
-            d3.selectAll('.group-' + groupidx).transition()
-                .delay(1000)   
-                .duration(1000)
-                .ease('linear')
-                .style('fill-opacity', 1)
-                .attr("x", function(d,i) {return groupidx*imgwidth + pixelscale(i%16);})
-                .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
-                .style('fill', function(d) { return bluewhitescale(d) });
-              };
-          })
+        deactiveOtherSections()
+
+        d3.selectAll('.group-' + subset_nn).transition()
+            .delay(100)   
+            .duration(1000)
+            .ease('linear')
+            .style('fill', function(d) { return bluewhitescale(d) });
+
+        d3.selectAll('#distance-' + subset_nn).transition()
+          .delay(100)
+          .duration(1000)
+          .ease('linear')
+          .style('fill', blue)
+          .style('font-weight', 900)
+
+        // shift down the training set and plot the new digit
+
+        // plot the new digit
       }
 
+      var pixelvalueDefaults = function() {
+          var digitGroups = d3.selectAll('.digit_group')
+          digitGroups.each(function(group, idx) {
+            d3.select(this).selectAll(".pixelvalue")
+                .attr("class", "pixelvalue")
+                .attr('x', function(d, point_idx) { return(vectorscale(point_idx)*4)})
+                .attr("y", function(d,i) { return pixelscale(idx*2.5) + 5; })
+                .text(function(d) { return Math.round(d * 10)/10 })
+                .style('fill-opacity', 1e-6)
+                .style('font-size', '1px');
+         }) 
+      }
+      var trainingGroupDefaults = function() {
+          var digitGroups = d3.selectAll('.digit_group')
+          digitGroups.each(function(group, idx) {
+            d3.select(this).selectAll(".pixel")
+              .attr("class", "pixel group-" + idx)
+              .attr("width", pixelsize)
+              .attr("height", pixelsize)
+              .attr("x", function(d,i) { return idx*imgwidth  + pixelscale(i%16);})
+              .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
+              .style("fill", function(d) { return blackwhitescale(d) })
+              .style('fill-opacity', 1e-6);
+         })
+         pixelvalueDefaults();
+      }
+
+      var newDigitDefaults = function() {
+        d3.selectAll('#newdigitvalues_header')
+          .text('New observation')
+          .style('font-weight', 900)
+          .attr('fill', red)
+          .style('fill-opacity', 1e-6)
+
+        var newDigitGroup = svg.selectAll('.newdigitgroup')
+
+        newDigitGroup.selectAll(".pixelvalue")
+            .attr('x', function(d, point_idx) { return(vectorscale(point_idx)*4)})
+            .attr("y", 12)
+            .text(function(d) { return Math.round(d * 10)/10 })
+            .style('fill-opacity', 1e-6)
+            .style('fill', red)
+            .style('font-weight', 900)
+            .style('font-size', '7px')   
+      }
+
+      var distancesGroupDefaults = function() {
+        d3.selectAll('#distance-header')
+          .text('Distance from new observation:')
+          .attr('x', 0)
+          .attr('y', 0)
+          .style('font-size', '12px')
+          .style('fill', red)
+          .style('font-weight', 9000)
+          .style("fill-opacity", 1e-6);
+
+        d3.selectAll('.distance-text')
+          .attr('x', 0)
+          .attr('y', function(d, i) {return pixelscale(i*2) - 12 - imgwidth})
+          .style('font-size', '7px')
+          .style('fill', black)
+          .style('font-weight', 100)
+          .style("fill-opacity", 1e-6); 
+      }
       // load the data
       d3.csv("data/MNIST_training.csv", function(data) {
-        svg.append('svg:text').text('Training Set')
-          .style('fill',black)
-          .attr('y', '12px')
-
         // we don't need all the data
         // TODO: Randomize?        
         subset = data.slice(0,subset_size)
@@ -260,21 +355,28 @@
           newdigit[k] = +v
         })
 
-        digitGroup = svg.append("svg:g")
+        newDigitGroup = svg.append("svg:g")
           .attr('class', 'newdigitgroup')
           .attr('id', 'newdigit_' + newdigit.label)
-          .attr("transform", function(d) { return "translate(0," + subset_size*10 + ")"; })
+          .attr("transform", function(d) { return "translate(0,20)"; })
 
-        digitGroup.selectAll(".pixelvalue")
+        newDigitGroup.append('svg:text')
+          .attr('id', 'newdigitvalues_header')
+
+        newDigitGroup.selectAll(".pixelvalue")
             .data(_.values(newdigit))
           .enter().append("text")
             .attr("class", "pixelvalue")
-            .attr('x', function(d, point_idx) { return(vectorscale(point_idx)*4)})
-            .attr("y", 12)
-            .text(function(d) { return Math.round(d * 10)/10 })
-            .style('fill-opacity', 1e-6)
-            .style('fill', red)
-            .style('font-size', '7px')
+
+        newDigitDefaults();
+
+        var trainingGroup = svg.append('svg:g')
+          .attr('id','trainingSetGroup')
+          .attr("transform", function(d) { return "translate(0," + 30 + ")"; })
+
+        trainingGroup.append('svg:text').text('Training Set')
+           .style('fill',black)
+           .attr('y', -12)
 
         // Put digits, numeric values and new digit on the page
         // when certain sections are active animate in and out of view
@@ -283,40 +385,30 @@
         // for each object, append a group to svg
         // and then plot each point from the digit
         subset.forEach(function(digit, idx) {
-          digitGroup = svg.append("svg:g")
+          digitGroup = trainingGroup.append("svg:g")
             .attr('class', 'digit_group')
             .attr('id', 'digit' + idx + '_' + digit.label)
-            .attr("transform", function(d) { return "translate(0," + 20 + ")"; })
 
           digitGroup.selectAll(".pixel")
               .data(_.values(digit).slice(0,256))
             .enter().append("rect")
               .attr("class", "pixel group-" + idx)
-              .attr("width", pixelsize)
-              .attr("height", pixelsize)
-              .attr("x", function(d,i) {return idx*imgwidth  + pixelscale(i%16);})
-              .attr("y", function(d,i) {return pixelscale(Math.floor(i/16));})
-              .style("fill", function(d) { return blackwhitescale(d) })
-              .style('fill-opacity', 1e-6);
 
           digitGroup.selectAll(".pixelvalue")
               .data(_.values(digit).slice(0,256))
             .enter().append("text")
-              .attr("class", "pixelvalue")
-              .attr('x', function(d, point_idx) { return(vectorscale(point_idx)*4)})
-              .attr("y", function(d,i) { return pixelscale(idx*2.25); })
-              .text(function(d) { return Math.round(d * 10)/10 })
-              .style('fill-opacity', 1e-6);
+              .attr('class', 'pixelvalue')
         });
+        trainingGroupDefaults();
 
-        svg.append('svg:text')
+        distancesGroupOffset = imgwidth+70+15
+        distancesGroup = svg.append("svg:g")
+          .attr('id', 'distances_group')
+          .attr("transform", function(d) { return "translate(0," + distancesGroupOffset + ")"; })
+
+        distancesGroup.append('svg:text')
           .attr('id','distance-header')
           .text('Distance from new observation:')
-          .attr('x', 0)
-          .attr('y', subset_size*10 + 20)
-          .style('font-size', '7px')
-          .style('fill', red)
-          .style("fill-opacity", 1e-6);
 
         var sums = [];
         // take each object and subtract it from the new object
@@ -326,18 +418,13 @@
           var sum = _.reduce(pairs, function(memo, num){ return memo + Math.pow(num[0] - num[1], 2); }, 0);
           sums.push(sum)
           // shift the group down and spit out a value
-          var digitGroup = svg.selectAll('#digit' + digit_idx + '_' + trainingdigit.label)   
-          svg.append("svg:text")
+          distancesGroup.append("svg:text")
               .attr('class', 'distance-text')
               .attr('id', 'distance-' + digit_idx)
-              .text(Math.round(sum))
-              .attr('x', 0)
-              .attr('y', pixelscale(digit_idx*2.25)+12)
-              .style('font-size', '7px')
-              .style('fill', black)
-              .style("fill-opacity", 1e-6);          
-          
+              .text(Math.round(sum))         
         })
+
+        distancesGroupDefaults();
 
         var subset_nn = _.indexOf(sums, _.min(sums))
 
