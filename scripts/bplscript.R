@@ -3,7 +3,7 @@ if (!require('jsonlite')) install.packages('jsonlite')
 p <- generatePaths(train.set)
 pjson = toJSON(p, pretty = TRUE)
 write(pjson, file = "~/Projects/data_vis_proj/data/digit-paths.json")
-write.csv(train.idcs, '~/Projects/data_vis_proj/data/train-idcs.csv', row.names = FALSE)
+write.csv(rand.idcs[train.idcs], '~/Projects/data_vis_proj/data/train-idcs.csv', row.names = FALSE)
 points <- p[[1]]$path
 plot(points)
 for (i in 1:nrow(points)) {
