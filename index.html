@@ -11,7 +11,7 @@
     <style type="text/css">
       body{
         width: 960px;
-        height: 3400px;
+        height: 4100px;
         margin: 0px auto;
         font-family: "HelveticaNeue-Light", "Helvetica Neue Light", "Helvetica Neue", Helvetica, Arial, "Lucida Grande", sans-serif;
       }
@@ -39,7 +39,7 @@
 
       #graph {
         position: fixed;
-        top: 220px;
+        top: 460px;
       }
 
       #graph.graph-scroll-fixed, #graph2.graph-scroll-fixed{
@@ -79,54 +79,103 @@
 
       .button-active {
         opacity: 1;
-        color: #FCAE0C; /*yellow*/
+        color: #0AB3A4; /*blue*/
         cursor: pointer;
         font-weight: 900;
+        text-decoration: underline;
       }
 
       .red {
         color: #F12A1B;
       }
+
+      .blue {
+        color: #0AB3A4;
+      }
+
+      .yellow {
+        color: #FCAE0C 
+      }
+
+      b {
+        color: #FCAE0C;
+      }
+
+      img {
+        height: 200px;
+        margin-right: 20px;
+        float: left;
+      }
     </style>
   </head>
   <body>
-    <h1>Classification of MNIST Hand-Drawn Digits</h1>
+    <h1 class='yellow'>Classification of MNIST Hand-Drawn Digits</h1>
       <div id='container'>
+          <div id='introduction'>
+            <h2>Introduction</h2>
+            <p><b>The image classification challenge:</b> Many machine learning tasks are concerned with classification. A common example is classifying images, whether the images be a photo of a cat or a hand-written digit. Converting hand-writing to computer-readable characters has many useful applications; for example, parsing a doctor's hand-written notes for electronic storage and future analysis.
+            </p>
+            <p>
+              Many contemporary machine learning algorithms, like <b>the neareast-neighbors algorithm,</b> rely on a large set of examples for predicitve power. However, many new machine learning methodologies are leveraging an understanding of human intuition to improve how machines perform at classification tasks which have few examples.
+            </p>
+            <p>
+              Below I highlight the popular, simple and powerful <b>neareast-neighbors algorithm</b> applied to the MNIST hand-written digit classification challenge, and introduce how <b><a href='http://science.sciencemag.org/content/350/6266/1332' class='blue'>Bayesian Program Learning</a></b> is being used to tackle the same tasks. The motivating research paper focused on the <b><a href='http://omniglot.com/' class='blue'>omniglot dataset</a></b>.
+            </p>
+          </div>
           <div id='sections'>
             <div class='section' id='section-1'>
               <div class='button'>Continue</div>
-              <p><b>The image classification challenge:</b> Many machine learning tasks are concerned with classification. A common example is classifying images, whether the images be a photo of a cat or a hand-written digit. Converting hand-writing to computer-readable characters has many useful applications; for example, parsing a doctor's hand-written notes for electronic storage and future analysis.</p>            
+              <p>The MNIST dataset of hand-drawn integers is comparable to the omniglot dataset of hand-drawn alphabetic characters in that it includes many examples with a high degree of variation. It is the variation across two-dimensions which makes the classification difficult.</p>            
             </div>
 
             <div class='section' id='section-2'>
               <div class='button'>Continue</div>
-              <p>But computers are simple creatures and it's hard for them to understand an image. Images have to be decomposed into lists of numeric values.</p>
-              <p>A large set of examples is often required to train a classifier. These lists and their labels are the <b>training data</b> in classification tasks.</p>          
+              <p>But computers are simple creatures and it's hard for them to understand an image. Images have to be decomposed into simple data structures and a <b>large set of examples</b> is often required to train a classifier. These examples and their labels are the <b>training set</b> in classification tasks.</p>          
             </div>
 
             <div class='section' id='section-3'>
               <div class='button'>Continue</div>
-              <p>When a <span style="class: 'red';">new object</span> needs to be classified, classification methods use the training data to determine which class is most likely for the new data. A classic and intuitive classification method is called <b>nearest-neighbors classification</b>. When an unknown image needs to be classified, it is compared to a training set. For each item in the training set, the new image is given a <b>distance score</b>. Those items in the training set which are "closest" to the new image are used to classify the new image.</p>
+              <p>A classic and intuitive classification method is called <b>nearest-neighbors classification</b>. Neareset neighbors uses the <b>pixel values</b> of an image in a list form to find examples which are similar to new unlabeled examples.</p>
             </div>
 
             <div class='section' id='section-4'>
               <div class='button'>Continue</div>
-              <p>When a <span style="class: 'red';">new object</span> needs to be classified, classification methods use the training data to determine which class is most likely for the new data. A classic and intuitive classification method is called <b>nearest-neighbors classification</b>. When an unknown image needs to be classified, it is compared to a training set. For each item in the training set, the new image is given a <b>distance score</b>. Those items in the training set which are "closest" to the new image are used to classify the new image.</p>
+              <p>When a <b><span class='red'>new example</span></b> needs to be classified, classification methods use the training data to determine which class is most likely for the new data.  The <b><span class='red'>new example</span></b> is compared to the training set.</p>
             </div>
 
             <div class='section' id='section-5'>
               <div class='button'>Continue</div>
-              <p>Predictions for the class of the new observation are made on the basis of the distance from objects in the training set.</p>
+              <p>For each item in the training set, the new image is given a <b>distance score</b>. Those items in the training set which are "closest" to the new image are used to classify the new image.</p>
             </div>
 
             <div class='section' id='section-6'>
               <div class='button'>Continue</div>
-              <p>Predictions for the class of the new observation are made on the basis of the distance from objects in the training set.</p>
+              <p>Predictions for the class of the new observation are made on the basis of the distance from objects in the training set. With few examples, many classification algorithms have a hard time making the right predictions.</p>
             </div>
 
             <div class='section' id='section-7'>
+              <div class='button'>Continue</div>
+              <p><b>Humans</b>, however, can classify new observations after just one example. We recognize <b>common shapes and spatial relationships</b> better than current machine learining algorithms.</p>
+              <p>Below is an example of a machine's <b>first attempt to mimick hand writing</b>.</p>
+            </div> 
+
+            <div class='section' id='section-8'>
+              <div class='button'>Learn more</div>
+              <p>Researchers are incorporating ideas about how the human brain learns into new methodologies of machine learning called <b><span class='red'>Bayesian Program Learning</span></b>. Bayesian Program Learning learns common strokes of alphabets and has demonstrated strong performance in classification and creative tasks.</p>
+              <div style='clear:left;'></div>
+              <img src='img/char_parsing.png'/>
+              <img src='img/nonparam_bpl.png'/>
+              <p>Images courtesy of Science Magazein, see <a href='#section-9'>resources</a> for more information.</p>
+            </div>
+            <div class='section' id='section-9'>
               <div class='button'>Back to top</div>
-              <p>With few examples, many classification algorithms have a hard time making the right predictions. However, we humans are much better at this type of thing. We know how to recognize common shapes so we understand new examples easily.</p>
+              <h2>Resources</h2>
+              <ul>
+                <li><a href='http://science.sciencemag.org/content/sci/350/6266/1332.full.pdf'>Science Magazine: Human-level concept learning through probabilistic program induction</a></li>
+                <li><a href='https://github.com/brendenlake/BPL'>BPL on github</a></li>
+                <li><a href='https://en.wikipedia.org/wiki/Bayesian_programming'>Bayesian Programming on Github</a></li>
+                <li><a href='http://science.sciencemag.org/content/sci/suppl/2015/12/09/350.6266.1332.DC1/Lake-SM.pdf'>Full paper</a></li>                
+              </ul>
             </div>            
           </div>
 
@@ -143,11 +192,11 @@
         if (!(current == $('.section').length)) {
           $('html, body').animate({
               scrollTop: $("#section-" + (current + 1)).offset().top - 70
-          }, 2000);
+          }, 1000);
         } else {
           $('html, body').animate({
-              scrollTop: $("#section-1").offset().top - 200
-          }, 2000);       
+              scrollTop: $("#section-1").offset().top - 460
+          }, 1000);       
         }
       })
 
@@ -183,10 +232,14 @@
         .range([red,'white']);
 
       var blue = '#0AB3A4'
-      var bluewhitescale = d3.scale.linear()
+      var yellowwhitescale = d3.scale.linear()
         .domain([-1,1])
         .range([blue,'white']);  
 
+      var yellow = '#FCAE0C'
+      var yellowwhitescale = d3.scale.linear()
+        .domain([-1,1])
+        .range([yellow,'white']);        
       var idcs = null;
       var setup = function() {
         d3.selectAll('rect').remove()
@@ -237,7 +290,7 @@
               .attr('class','trainingSetGroup')
 
             trainingGroup.append('svg:text').text('Training Set')
-               .style('fill',blue)
+               .style('fill',yellow)
                .style('font-weight', 900)
                .attr('y', -12)
 
@@ -297,7 +350,6 @@
         })
 
       }
-      // setup();
 
       var secondaryOffset = 30;
       var newDigitDefaults = function() {
@@ -368,7 +420,7 @@
           .attr('x', 0)
           .attr('y', 0)
           .style('font-size', '12px')
-          .style('fill', blue)
+          .style('fill', yellow)
           .style('font-weight', 9000)
           .style("fill-opacity", 1e-6);
 
@@ -464,10 +516,16 @@
           if (i == 4 && st > lastScrollTop) { activateSectionFive() }
           if (i == 5 && st > lastScrollTop) { activateSectionSix() }
           if (i == 6 && st > lastScrollTop) { activateSectionSeven() }
+          if (i == 7 && st > lastScrollTop) { activateSectionEight() }
+          if (i == 8 && st > lastScrollTop) {
+            d3.selectAll('#section-9 div.button').attr('class','button button-active')            
+          }
           lastScrollTop = st;
         }) 
 
         var activateSectionOne = function() {
+          d3.selectAll('#graph').transition().duration(1000)
+            .style('top','460px')        
           setup()
           d3.selectAll('#section-1 div.button').transition()
             .delay(1000)
@@ -475,11 +533,13 @@
         }
 
         var activateSectionTwo = function() {
+          d3.selectAll('#graph').transition().duration(1000)
+            .style('top','160px')          
           pixelValueDefaults();
           drawPixelValueVectors();
           d3.selectAll('#section-2 div.button')
             .transition()
-            .delay(dur*256+1100).attr('class','button button-active')
+            .delay(dur*256).attr('class','button button-active')
         }
 
         var activateSectionThree = function() {
@@ -532,7 +592,7 @@
           drawTraining(5000);
 
           d3.selectAll('#section-5 div.button').transition()
-            .delay(7000)
+            .delay(6000)
             .attr('class','button button-active')           
         }
 
@@ -543,13 +603,13 @@
               .delay(1000)   
               .duration(1000)
               .ease('linear')
-              .style('fill', function(d) { return bluewhitescale(d) });
+              .style('fill', function(d) { return yellowwhitescale(d) });
 
           d3.selectAll('#distance-' + magic).transition()
             .delay(1000)
             .duration(1000)
             .ease('linear')
-            .style('fill', blue)
+            .style('fill', yellow)
             .style('font-weight', 900)
 
             // plot the new digit
@@ -581,7 +641,7 @@
           pixelValueDefaults();
           distancesGroupDefaults();
 
-          drawTraining(100);
+          drawTraining(0);
 
           var pathsGroup = d3.selectAll('.pathsGroup')
           pathsGroup.moveToFront()
@@ -612,10 +672,25 @@
                   .attr("stroke-dashoffset", 0);             
             })
           })
+
+          d3.selectAll('.digit_group .pixel').transition()
+            .delay(4000).duration(1000).style('fill-opacity', 1e-6)
+
           d3.selectAll('#section-7 div.button').transition()
-            .delay(4000)
+            .delay(5000)
             .attr('class','button button-active')        
-        }   
+        }
+
+        var activateSectionEight = function() {
+          d3.selectAll('rect').remove()
+          d3.selectAll('g').remove()
+          d3.selectAll('path').remove()
+          d3.selectAll('text').remove()
+
+          d3.selectAll('#section-8 div.button').transition()
+            .delay(1000)
+            .attr('class','button button-active')         
+        }
     </script>
   </footer>
 </html>
